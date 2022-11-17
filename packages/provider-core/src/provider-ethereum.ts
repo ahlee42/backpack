@@ -163,7 +163,7 @@ export class ProviderEthereumInjection extends EventEmitter {
     window.addEventListener("message", this._handleNotification.bind(this));
   };
 
-  setState = (updatedState) => {
+  setState = (updatedState: BaseProviderState) => {
     this.state = updatedState;
     Object.freeze(this.state);
   };
@@ -352,7 +352,7 @@ export class ProviderEthereumInjection extends EventEmitter {
   /**
    * Handle a connect notification from Backpack.
    */
-  _handleNotificationConnected = async (event) => {
+  _handleNotificationConnected = async (event: Event) => {
     const { publicKey, connectionUrl, chainId } = event.data.detail.data;
     this.publicKey = publicKey;
     this.provider = new ethers.providers.JsonRpcProvider(
@@ -469,11 +469,9 @@ export class ProviderEthereumInjection extends EventEmitter {
    * Handle eth_sign, eth_signTypedData, personal_sign RPC requests.
    */
   handleEthSignMessage = async (messageHex: string) => {
-    if (!this.publicKey) {
-      throw new Error("wallet not connected");
-    }
+    this._ensureConnected();
     return await cmn.signMessage(
-      this.publicKey,
+      this.publicKey!,
       this.requestManager,
       ethers.utils.toUtf8String(messageHex)
     );
@@ -483,11 +481,9 @@ export class ProviderEthereumInjection extends EventEmitter {
    * Handle eth_signTransaction RPC requests.
    */
   handleEthSignTransaction = async (transaction: any) => {
-    if (!this.publicKey) {
-      throw new Error("wallet not connected");
-    }
+    this._ensureConnected();
     return await cmn.signTransaction(
-      this.publicKey,
+      this.publicKey!,
       this.requestManager,
       transaction
     );
@@ -497,13 +493,17 @@ export class ProviderEthereumInjection extends EventEmitter {
    * Handle eth_sendTransaction RPC requests.
    */
   handleEthSendTransaction = async (transaction: any) => {
-    if (!this.publicKey) {
-      throw new Error("wallet not connected");
-    }
+    this._ensureConnected();
     return await cmn.sendTransaction(
-      this.publicKey,
+      this.publicKey!,
       this.requestManager,
       transaction
     );
+  };
+
+  _ensureConnected = () => {
+    if (!this.publicKey) {
+      throw new Error("wallet not connected");
+    }
   };
 }
