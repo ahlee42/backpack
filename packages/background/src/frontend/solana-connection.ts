@@ -58,7 +58,6 @@ import {
 } from "@coral-xyz/common";
 import type { SolanaConnectionBackend } from "../backend/solana-connection";
 import type { Config, Handle } from "../types";
-import * as bs58 from "bs58";
 import { decode } from "bs58";
 
 const logger = getLogger("solana-connection");
