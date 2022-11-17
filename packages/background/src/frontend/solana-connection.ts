@@ -5,13 +5,11 @@ import type {
   Finality,
   ConfirmedSignaturesForAddress2Options,
   GetProgramAccountsConfig,
-  MessageArgs,
   BlockheightBasedTransactionConfirmationStrategy,
   GetParsedProgramAccountsConfig,
 } from "@solana/web3.js";
 import {
   PublicKey,
-  Message,
   GetAccountInfoConfig,
   VersionedMessage,
 } from "@solana/web3.js";
@@ -29,8 +27,8 @@ import {
   deserializeTokenAccountsFilter,
   ChannelAppUi,
   ChannelContentScript,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_SOLANA_CONNECTION_RPC_UI,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+  CHANNEL_BLOCKCHAIN_CONNECTION_RPC_UI,
   SOLANA_CONNECTION_RPC_CUSTOM_SPL_TOKEN_ACCOUNTS,
   SOLANA_CONNECTION_GET_MULTIPLE_ACCOUNTS_INFO,
   SOLANA_CONNECTION_RPC_GET_ACCOUNT_INFO,
@@ -71,7 +69,7 @@ export function start(
   b: SolanaConnectionBackend
 ): Handle {
   const solanaConnection = ChannelAppUi.server(
-    CHANNEL_SOLANA_CONNECTION_RPC_UI
+    CHANNEL_BLOCKCHAIN_CONNECTION_RPC_UI
   );
   solanaConnection.handler(withContextPort(b, events, handle));
 
@@ -79,7 +77,7 @@ export function start(
     if (cfg.isMobile) return;
 
     const s = ChannelContentScript.server(
-      CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST
+      CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST
     );
     s.handler(withContext(b, events, handleInjected));
     return s;

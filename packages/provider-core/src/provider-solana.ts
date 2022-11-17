@@ -9,21 +9,18 @@ import type {
   Commitment,
 } from "@solana/web3.js";
 import { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { Blockchain } from "@coral-xyz/common";
 import type { Event } from "@coral-xyz/common";
 import {
   getLogger,
   BackgroundSolanaConnection,
   DEFAULT_SOLANA_CLUSTER,
-  CHANNEL_SOLANA_RPC_REQUEST,
-  CHANNEL_SOLANA_RPC_RESPONSE,
-  CHANNEL_SOLANA_NOTIFICATION,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE,
+  CHANNEL_BLOCKCHAIN_NOTIFICATION,
   SOLANA_RPC_METHOD_CONNECT,
   SOLANA_RPC_METHOD_DISCONNECT,
   SOLANA_RPC_METHOD_OPEN_XNFT,
-  NOTIFICATION_SOLANA_CONNECTED,
-  NOTIFICATION_SOLANA_DISCONNECTED,
+  NOTIFICATION_BLOCKCHAIN_CONNECTED,
+  NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
   NOTIFICATION_SOLANA_CONNECTION_URL_UPDATED,
   NOTIFICATION_SOLANA_ACTIVE_WALLET_UPDATED,
 } from "@coral-xyz/common";
@@ -37,8 +34,6 @@ export class ProviderSolanaInjection
   extends PrivateEventEmitter
   implements Provider
 {
-  #options?: ConfirmOptions;
-
   //
   // Channel to send extension specific RPC requests to the extension.
   //
@@ -53,22 +48,17 @@ export class ProviderSolanaInjection
   #publicKey?: PublicKey;
   #connection: Connection;
 
-  constructor() {
+  constructor(
+    requestManager: RequestManager,
+    connectionRequestManager: RequestManager
+  ) {
     super();
     if (new.target === ProviderSolanaInjection) {
       Object.freeze(this);
     }
-    this.#options = undefined;
-    this.#requestManager = new RequestManager(
-      CHANNEL_SOLANA_RPC_REQUEST,
-      CHANNEL_SOLANA_RPC_RESPONSE
-    );
-    this.#connectionRequestManager = new RequestManager(
-      CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-      CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE
-    );
+    this.#requestManager = requestManager;
+    this.#connectionRequestManager = connectionRequestManager;
     this.#initChannels();
-
     this.#isBackpack = true;
     this.#isConnected = false;
     this.#publicKey = undefined;
@@ -88,15 +78,20 @@ export class ProviderSolanaInjection
   }
 
   #handleNotification(event: Event) {
-    if (event.data.type !== CHANNEL_SOLANA_NOTIFICATION) return;
+    if (
+      event.data.type !== CHANNEL_BLOCKCHAIN_NOTIFICATION ||
+      event.data.detail.blockchain !== Blockchain.SOLANA
+    ) {
+      return;
+    }
+
     logger.debug("notification", event);
 
     switch (event.data.detail.name) {
-      case NOTIFICATION_SOLANA_CONNECTED:
-        this.#handleNotificationConnected(event);
+      case NOTIFICATION_BLOCKCHAIN_CONNECTED:
         break;
-      case NOTIFICATION_SOLANA_DISCONNECTED:
-        this.#handleNotificationDisconnected(event);
+      case NOTIFICATION_BLOCKCHAIN_DISCONNECTED:
+        this.#handleNotificationDisconnected();
         break;
       case NOTIFICATION_SOLANA_CONNECTION_URL_UPDATED:
         this.#handleNotificationConnectionUrlUpdated(event);
@@ -111,8 +106,6 @@ export class ProviderSolanaInjection
     this.emit(_mapNotificationName(event.data.detail.name));
   }
 
-  #handleNotificationConnected(event: Event) {}
-
   #connect(publicKey: string, connectionUrl: string) {
     this.#isConnected = true;
     this.#publicKey = new PublicKey(publicKey);
@@ -122,7 +115,7 @@ export class ProviderSolanaInjection
     );
   }
 
-  #handleNotificationDisconnected(event: Event) {
+  #handleNotificationDisconnected() {
     this.#isConnected = false;
     this.#connection = this.defaultConnection();
   }
@@ -209,9 +202,7 @@ export class ProviderSolanaInjection
   // @ts-ignore
   async sendAll<T extends Transaction | VersionedTransaction>(
     _txWithSigners: { tx: T; signers?: Signer[] }[],
-    _opts?: ConfirmOptions,
-    connection?: Connection,
-    publicKey?: PublicKey
+    _opts?: ConfirmOptions
   ): Promise<Array<TransactionSignature>> {
     throw new Error("sendAll not implemented");
   }
@@ -303,9 +294,9 @@ export class ProviderSolanaInjection
 // Maps the notification name (internal) to the event name.
 function _mapNotificationName(notificationName: string) {
   switch (notificationName) {
-    case NOTIFICATION_SOLANA_CONNECTED:
+    case NOTIFICATION_BLOCKCHAIN_CONNECTED:
       return "connect";
-    case NOTIFICATION_SOLANA_DISCONNECTED:
+    case NOTIFICATION_BLOCKCHAIN_DISCONNECTED:
       return "disconnect";
     case NOTIFICATION_SOLANA_CONNECTION_URL_UPDATED:
       return "connectionDidChange";

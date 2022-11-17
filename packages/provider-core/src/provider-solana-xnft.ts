@@ -16,17 +16,12 @@ import {
   getLogger,
   BackgroundSolanaConnection,
   Blockchain,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE,
   CHANNEL_PLUGIN_NOTIFICATION,
   PLUGIN_NOTIFICATION_CONNECT,
   PLUGIN_NOTIFICATION_MOUNT,
   PLUGIN_NOTIFICATION_UNMOUNT,
   PLUGIN_NOTIFICATION_SOLANA_CONNECTION_URL_UPDATED,
   PLUGIN_NOTIFICATION_SOLANA_PUBLIC_KEY_UPDATED,
-  PLUGIN_RPC_METHOD_LOCAL_STORAGE_GET,
-  PLUGIN_RPC_METHOD_LOCAL_STORAGE_PUT,
-  PLUGIN_RPC_METHOD_WINDOW_OPEN,
   PLUGIN_NOTIFICATION_UPDATE_METADATA,
 } from "@coral-xyz/common";
 import * as cmn from "./common/solana";
@@ -49,16 +44,16 @@ export class ProviderSolanaXnftInjection
   #publicKey?: PublicKey;
   #connection: Connection;
 
-  constructor(requestManager: ChainedRequestManager) {
+  constructor(
+    requestManager: ChainedRequestManager,
+    connectionRequestManager: RequestManager
+  ) {
     super();
     if (new.target === ProviderSolanaXnftInjection) {
       Object.freeze(this);
     }
     this.#requestManager = requestManager;
-    this.#connectionRequestManager = new RequestManager(
-      CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-      CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE
-    );
+    this.#connectionRequestManager = connectionRequestManager;
     this.#setupChannels();
   }
 

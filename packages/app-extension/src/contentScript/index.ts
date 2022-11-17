@@ -2,16 +2,11 @@ import {
   getLogger,
   ChannelContentScript,
   BrowserRuntimeExtension,
-  CHANNEL_SOLANA_NOTIFICATION,
-  CHANNEL_SOLANA_RPC_REQUEST,
-  CHANNEL_SOLANA_RPC_RESPONSE,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE,
-  CHANNEL_ETHEREUM_NOTIFICATION,
-  CHANNEL_ETHEREUM_RPC_REQUEST,
-  CHANNEL_ETHEREUM_RPC_RESPONSE,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_RESPONSE,
+  CHANNEL_BLOCKCHAIN_NOTIFICATION,
+  CHANNEL_BLOCKCHAIN_RPC_REQUEST,
+  CHANNEL_BLOCKCHAIN_RPC_RESPONSE,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_RESPONSE,
 } from "@coral-xyz/common";
 
 const logger = getLogger("content-script");
@@ -48,33 +43,13 @@ function initChannels() {
 // Initialize all proxy communication channels from the client to the background
 // script.
 function initClientChannels() {
-  //
-  // Wallet Solana specific rpc requests.
-  //
   ChannelContentScript.proxy(
-    CHANNEL_SOLANA_RPC_REQUEST,
-    CHANNEL_SOLANA_RPC_RESPONSE
+    CHANNEL_BLOCKCHAIN_RPC_REQUEST,
+    CHANNEL_BLOCKCHAIN_RPC_RESPONSE
   );
-  //
-  // Wallet Ethereum specific rpc requests.
-  //
   ChannelContentScript.proxy(
-    CHANNEL_ETHEREUM_RPC_REQUEST,
-    CHANNEL_ETHEREUM_RPC_RESPONSE
-  );
-  //
-  // Solana Connection forwarding.
-  //
-  ChannelContentScript.proxy(
-    CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-    CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE
-  );
-  //
-  // Ethereum Provider forwarding.
-  //
-  ChannelContentScript.proxy(
-    CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-    CHANNEL_ETHEREUM_CONNECTION_INJECTED_RESPONSE
+    CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+    CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_RESPONSE
   );
 }
 
@@ -82,8 +57,7 @@ function initClientChannels() {
 // client.
 function initBackgroundChannels() {
   // Forward all notifications from the background script to the injected page.
-  ChannelContentScript.proxyReverse(CHANNEL_ETHEREUM_NOTIFICATION);
-  ChannelContentScript.proxyReverse(CHANNEL_SOLANA_NOTIFICATION);
+  ChannelContentScript.proxyReverse(CHANNEL_BLOCKCHAIN_NOTIFICATION);
 }
 
 main();

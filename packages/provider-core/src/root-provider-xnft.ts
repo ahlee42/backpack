@@ -2,8 +2,6 @@ import type { Event } from "@coral-xyz/common";
 import type { XnftMetadata } from "@coral-xyz/common-public";
 import {
   getLogger,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE,
   CHANNEL_PLUGIN_NOTIFICATION,
   PLUGIN_NOTIFICATION_CONNECT,
   PLUGIN_NOTIFICATION_MOUNT,
@@ -17,7 +15,6 @@ import {
   PLUGIN_NOTIFICATION_ETHEREUM_PUBLIC_KEY_UPDATED,
   PLUGIN_RPC_METHOD_POP_OUT,
 } from "@coral-xyz/common";
-import { RequestManager } from "./request-manager";
 import { PrivateEventEmitter } from "./common/PrivateEventEmitter";
 import { ChainedRequestManager } from "./chained-request-manager";
 import {
@@ -37,7 +34,6 @@ const logger = getLogger("provider-xnft-injection");
 //
 export class ProviderRootXnftInjection extends PrivateEventEmitter {
   #requestManager: ChainedRequestManager;
-  #connectionRequestManager: RequestManager;
   #publicKeys: { [blockchain: string]: string };
   #connectionUrls: { [blockchain: string]: string | null };
 
@@ -59,10 +55,6 @@ export class ProviderRootXnftInjection extends PrivateEventEmitter {
       Object.freeze(this);
     }
     this.#requestManager = requestManager;
-    this.#connectionRequestManager = new RequestManager(
-      CHANNEL_SOLANA_CONNECTION_INJECTED_REQUEST,
-      CHANNEL_SOLANA_CONNECTION_INJECTED_RESPONSE
-    );
     this.#childIframes = [];
     this.#cachedNotifications = {};
     this.#setupChannels();

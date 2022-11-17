@@ -5,8 +5,8 @@ import {
   getLogger,
   BackgroundEthereumProvider,
   Blockchain,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_RESPONSE,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_RESPONSE,
   CHANNEL_PLUGIN_NOTIFICATION,
   PLUGIN_NOTIFICATION_CONNECT,
   PLUGIN_NOTIFICATION_ETHEREUM_CONNECTION_URL_UPDATED,
@@ -38,8 +38,8 @@ export class ProviderEthereumXnftInjection extends PrivateEventEmitter {
 
     this.#requestManager = requestManager;
     this.#connectionRequestManager = new RequestManager(
-      CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-      CHANNEL_ETHEREUM_CONNECTION_INJECTED_RESPONSE
+      CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+      CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_RESPONSE
     );
     this.#setupChannels();
   }
@@ -102,7 +102,12 @@ export class ProviderEthereumXnftInjection extends PrivateEventEmitter {
   }
 
   async #handleNotifications(event: Event) {
-    if (event.data.type !== CHANNEL_PLUGIN_NOTIFICATION) return;
+    if (
+      event.data.type !== CHANNEL_PLUGIN_NOTIFICATION ||
+      event.data.detail.blockchain !== Blockchain.ETHEREUM
+    ) {
+      return;
+    }
 
     logger.debug("handle notification", event);
 

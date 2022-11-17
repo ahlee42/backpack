@@ -22,6 +22,10 @@ import {
   openXnft,
   openOnboarding,
   BrowserRuntimeExtension,
+  BACKEND_EVENT,
+  CHANNEL_BLOCKCHAIN_NOTIFICATION,
+  CHANNEL_BLOCKCHAIN_RPC_REQUEST,
+  CHANNEL_POPUP_RESPONSE,
   ETHEREUM_RPC_METHOD_CONNECT,
   ETHEREUM_RPC_METHOD_DISCONNECT,
   ETHEREUM_RPC_METHOD_SIGN_TX,
@@ -35,20 +39,12 @@ import {
   SOLANA_RPC_METHOD_SIGN_MESSAGE,
   SOLANA_RPC_METHOD_SIMULATE,
   SOLANA_RPC_METHOD_OPEN_XNFT,
-  CHANNEL_ETHEREUM_RPC_REQUEST,
-  CHANNEL_ETHEREUM_NOTIFICATION,
-  CHANNEL_SOLANA_RPC_REQUEST,
-  CHANNEL_SOLANA_NOTIFICATION,
-  CHANNEL_POPUP_RESPONSE,
-  BACKEND_EVENT,
+  NOTIFICATION_BLOCKCHAIN_CONNECTED,
+  NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
   NOTIFICATION_ETHEREUM_ACTIVE_WALLET_UPDATED,
-  NOTIFICATION_ETHEREUM_CONNECTED,
-  NOTIFICATION_ETHEREUM_DISCONNECTED,
   NOTIFICATION_ETHEREUM_CONNECTION_URL_UPDATED,
   NOTIFICATION_ETHEREUM_CHAIN_ID_UPDATED,
   NOTIFICATION_SOLANA_ACTIVE_WALLET_UPDATED,
-  NOTIFICATION_SOLANA_CONNECTED,
-  NOTIFICATION_SOLANA_DISCONNECTED,
   NOTIFICATION_SOLANA_CONNECTION_URL_UPDATED,
   Blockchain,
 } from "@coral-xyz/common";
@@ -69,17 +65,11 @@ export function start(cfg: Config, events: EventEmitter, b: Backend): Handle {
     return null;
   }
 
-  const solanaRpcServerInjected = ChannelContentScript.server(
-    CHANNEL_SOLANA_RPC_REQUEST
+  const rpcServerInjected = ChannelContentScript.server(
+    CHANNEL_BLOCKCHAIN_RPC_REQUEST
   );
-  const solanaNotificationsInjected = ChannelContentScript.client(
-    CHANNEL_SOLANA_NOTIFICATION
-  );
-  const ethereumRpcServerInjected = ChannelContentScript.server(
-    CHANNEL_ETHEREUM_RPC_REQUEST
-  );
-  const ethereumNotificationsInjected = ChannelContentScript.client(
-    CHANNEL_ETHEREUM_NOTIFICATION
+  const notificationsInjected = ChannelContentScript.client(
+    CHANNEL_BLOCKCHAIN_NOTIFICATION
   );
   const popupUiResponse = ChannelAppUi.server(CHANNEL_POPUP_RESPONSE);
 
@@ -88,48 +78,39 @@ export function start(cfg: Config, events: EventEmitter, b: Backend): Handle {
   //
   events.on(BACKEND_EVENT, (notification) => {
     switch (notification.name) {
-      case NOTIFICATION_ETHEREUM_CONNECTED:
-        ethereumNotificationsInjected.sendMessageActiveTab(notification);
+      case NOTIFICATION_BLOCKCHAIN_CONNECTED:
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
-      case NOTIFICATION_ETHEREUM_DISCONNECTED:
-        ethereumNotificationsInjected.sendMessageActiveTab(notification);
+      case NOTIFICATION_BLOCKCHAIN_DISCONNECTED:
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
       case NOTIFICATION_ETHEREUM_ACTIVE_WALLET_UPDATED:
-        ethereumNotificationsInjected.sendMessageActiveTab(notification);
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
       case NOTIFICATION_ETHEREUM_CONNECTION_URL_UPDATED:
-        ethereumNotificationsInjected.sendMessageActiveTab(notification);
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
       case NOTIFICATION_ETHEREUM_CHAIN_ID_UPDATED:
-        ethereumNotificationsInjected.sendMessageActiveTab(notification);
-        break;
-      case NOTIFICATION_SOLANA_CONNECTED:
-        solanaNotificationsInjected.sendMessageActiveTab(notification);
-        break;
-      case NOTIFICATION_SOLANA_DISCONNECTED:
-        solanaNotificationsInjected.sendMessageActiveTab(notification);
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
       case NOTIFICATION_SOLANA_ACTIVE_WALLET_UPDATED:
-        solanaNotificationsInjected.sendMessageActiveTab(notification);
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
       case NOTIFICATION_SOLANA_CONNECTION_URL_UPDATED:
-        solanaNotificationsInjected.sendMessageActiveTab(notification);
+        notificationsInjected.sendMessageActiveTab(notification);
         break;
       default:
         break;
     }
   });
 
-  ethereumRpcServerInjected.handler(withContext(b, events, handle));
-  solanaRpcServerInjected.handler(withContext(b, events, handle));
+  rpcServerInjected.handler(withContext(b, events, handle));
   popupUiResponse.handler(withContextPort(b, events, handlePopupUiResponse));
 
   return {
-    ethereumRpcServerInjected,
-    ethereumNotificationsInjected,
+    rpcServerInjected,
+    notificationsInjected,
     popupUiResponse,
-    solanaRpcServerInjected,
-    solanaNotificationsInjected,
   };
 }
 
@@ -278,7 +259,7 @@ async function handleConnect(
       const chainId = await ctx.backend.ethereumChainIdRead();
       const data = { publicKey: activeWallet, connectionUrl, chainId };
       ctx.events.emit(BACKEND_EVENT, {
-        name: NOTIFICATION_ETHEREUM_CONNECTED,
+        name: NOTIFICATION_BLOCKCHAIN_CONNECTED,
         data,
       });
       return [data];
@@ -286,7 +267,7 @@ async function handleConnect(
       const connectionUrl = await ctx.backend.solanaConnectionUrlRead();
       const data = { publicKey: activeWallet, connectionUrl };
       ctx.events.emit(BACKEND_EVENT, {
-        name: NOTIFICATION_SOLANA_CONNECTED,
+        name: NOTIFICATION_BLOCKCHAIN_CONNECTED,
         data,
       });
       return [data];
@@ -308,12 +289,12 @@ function handleDisconnect(
   if (blockchain === Blockchain.SOLANA) {
     resp = ctx.backend.solanaDisconnect();
     ctx.events.emit(BACKEND_EVENT, {
-      name: NOTIFICATION_SOLANA_DISCONNECTED,
+      name: NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
     });
   } else if (blockchain === Blockchain.ETHEREUM) {
     // resp = ctx.backend.ethereumDisconnect();
     ctx.events.emit(BACKEND_EVENT, {
-      name: NOTIFICATION_ETHEREUM_DISCONNECTED,
+      name: NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
     });
   }
   return [resp];

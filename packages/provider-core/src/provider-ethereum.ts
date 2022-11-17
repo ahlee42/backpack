@@ -5,14 +5,11 @@ import type { Event } from "@coral-xyz/common";
 import {
   getLogger,
   BackgroundEthereumProvider,
-  CHANNEL_ETHEREUM_RPC_REQUEST,
-  CHANNEL_ETHEREUM_RPC_RESPONSE,
-  CHANNEL_ETHEREUM_NOTIFICATION,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_RESPONSE,
+  Blockchain,
   ETHEREUM_RPC_METHOD_CONNECT,
-  NOTIFICATION_ETHEREUM_CONNECTED,
-  NOTIFICATION_ETHEREUM_DISCONNECTED,
+  CHANNEL_BLOCKCHAIN_NOTIFICATION,
+  NOTIFICATION_BLOCKCHAIN_CONNECTED,
+  NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
   NOTIFICATION_ETHEREUM_CONNECTION_URL_UPDATED,
   NOTIFICATION_ETHEREUM_CHAIN_ID_UPDATED,
   NOTIFICATION_ETHEREUM_ACTIVE_WALLET_UPDATED,
@@ -138,21 +135,14 @@ export class ProviderEthereumInjection extends EventEmitter {
    */
   autoRefreshOnNetworkChange: Boolean;
 
-  constructor() {
+  constructor(
+    requestManager: RequestManager,
+    connectionRequestManager: RequestManager
+  ) {
     super();
-
-    this.requestManager = new RequestManager(
-      CHANNEL_ETHEREUM_RPC_REQUEST,
-      CHANNEL_ETHEREUM_RPC_RESPONSE
-    );
-
-    this.connectionRequestManager = new RequestManager(
-      CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-      CHANNEL_ETHEREUM_CONNECTION_INJECTED_RESPONSE
-    );
-
+    this.requestManager = requestManager;
+    this.connectionRequestManager = connectionRequestManager;
     this.initChannels();
-
     this.setState({
       ...ProviderEthereumInjection._defaultState,
     });
@@ -329,14 +319,20 @@ export class ProviderEthereumInjection extends EventEmitter {
    *  Handle notifications from Backpack.
    */
   _handleNotification = (event: Event) => {
-    if (event.data.type !== CHANNEL_ETHEREUM_NOTIFICATION) return;
+    if (
+      event.data.type !== CHANNEL_BLOCKCHAIN_NOTIFICATION ||
+      event.data.detail.blockchain !== Blockchain.ETHEREUM
+    ) {
+      return;
+    }
+
     logger.debug("notification", event);
 
     switch (event.data.detail.name) {
-      case NOTIFICATION_ETHEREUM_CONNECTED:
+      case NOTIFICATION_BLOCKCHAIN_CONNECTED:
         this._handleNotificationConnected(event);
         break;
-      case NOTIFICATION_ETHEREUM_DISCONNECTED:
+      case NOTIFICATION_BLOCKCHAIN_DISCONNECTED:
         this._handleNotificationDisconnected();
         break;
       case NOTIFICATION_ETHEREUM_CONNECTION_URL_UPDATED:

@@ -5,11 +5,16 @@ import {
   ProviderSolanaInjection,
   ProviderSolanaXnftInjection,
   ChainedRequestManager,
+  RequestManager,
 } from "@coral-xyz/provider-core";
 import {
   getLogger,
   CHANNEL_PLUGIN_RPC_REQUEST,
   CHANNEL_PLUGIN_RPC_RESPONSE,
+  CHANNEL_BLOCKCHAIN_RPC_REQUEST,
+  CHANNEL_BLOCKCHAIN_RPC_RESPONSE,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_RESPONSE,
 } from "@coral-xyz/common";
 import { initialize } from "@coral-xyz/wallet-standard";
 import type { WalletProvider, WindowEthereum } from "./types";
@@ -19,13 +24,27 @@ const logger = getLogger("provider-injection");
 // Entry.
 function main() {
   logger.debug("starting injected script");
-  initSolana();
-  initEthereum();
+  const requestManager = new RequestManager(
+    CHANNEL_BLOCKCHAIN_RPC_REQUEST,
+    CHANNEL_BLOCKCHAIN_RPC_RESPONSE
+  );
+  const connectionRequestManager = new RequestManager(
+    CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+    CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_RESPONSE
+  );
+  initSolana(requestManager, connectionRequestManager);
+  initEthereum(requestManager, connectionRequestManager);
   logger.debug("provider ready");
 }
 
-function initSolana() {
-  const solana = new ProviderSolanaInjection();
+function initSolana(
+  requestManager: RequestManager,
+  connectionRequestManager: RequestManager
+) {
+  const solana = new ProviderSolanaInjection(
+    requestManager,
+    connectionRequestManager
+  );
 
   try {
     Object.defineProperty(window, "backpack", { value: solana });
@@ -65,8 +84,14 @@ function initSolana() {
  * Initialise window.ethereum with a proxy that can handle multiple wallets
  * colliding on `window.ethereum`.
  */
-function initEthereum() {
-  const backpackEthereum = new ProviderEthereumInjection();
+function initEthereum(
+  requestManager: RequestManager,
+  connectionRequestManager: RequestManager
+) {
+  const backpackEthereum = new ProviderEthereumInjection(
+    requestManager,
+    connectionRequestManager
+  );
 
   // Setup the wallet router
   if (!window.walletRouter) {

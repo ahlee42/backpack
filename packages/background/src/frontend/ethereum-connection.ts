@@ -11,8 +11,8 @@ import {
   withContextPort,
   ChannelAppUi,
   ChannelContentScript,
-  CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST,
-  CHANNEL_ETHEREUM_CONNECTION_RPC_UI,
+  CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST,
+  CHANNEL_BLOCKCHAIN_CONNECTION_RPC_UI,
   ETHEREUM_PROVIDER_RPC_GET_BALANCE,
   ETHEREUM_PROVIDER_RPC_GET_CODE,
   ETHEREUM_PROVIDER_RPC_GET_STORAGE_AT,
@@ -42,7 +42,7 @@ export function start(
   b: EthereumConnectionBackend
 ): Handle {
   const ethereumConnection = ChannelAppUi.server(
-    CHANNEL_ETHEREUM_CONNECTION_RPC_UI
+    CHANNEL_BLOCKCHAIN_CONNECTION_RPC_UI
   );
   ethereumConnection.handler(withContextPort(b, events, handle));
 
@@ -50,7 +50,7 @@ export function start(
     if (cfg.isMobile) return;
 
     const s = ChannelContentScript.server(
-      CHANNEL_ETHEREUM_CONNECTION_INJECTED_REQUEST
+      CHANNEL_BLOCKCHAIN_CONNECTION_INJECTED_REQUEST
     );
     s.handler(withContext(b, events, handleInjected));
     return s;
