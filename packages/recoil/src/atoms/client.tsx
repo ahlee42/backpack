@@ -28,7 +28,7 @@ export const backgroundResponder = atom<ChannelAppUiResponder>({
 });
 
 /**
- * Channel for proxying Solana Connection requests to be fulfilled by
+ * Channel for proxying blockchain connection requests to be fulfilled by
  * the background.
  */
 export const connectionBackgroundClient = selector({

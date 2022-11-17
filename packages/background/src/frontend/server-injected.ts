@@ -260,7 +260,10 @@ async function handleConnect(
       const data = { publicKey: activeWallet, connectionUrl, chainId };
       ctx.events.emit(BACKEND_EVENT, {
         name: NOTIFICATION_BLOCKCHAIN_CONNECTED,
-        data,
+        data: {
+          blockchain,
+          ...data,
+        },
       });
       return [data];
     } else if (blockchain === Blockchain.SOLANA) {
@@ -268,7 +271,10 @@ async function handleConnect(
       const data = { publicKey: activeWallet, connectionUrl };
       ctx.events.emit(BACKEND_EVENT, {
         name: NOTIFICATION_BLOCKCHAIN_CONNECTED,
-        data,
+        data: {
+          blockchain,
+          ...data,
+        },
       });
       return [data];
     }
@@ -290,11 +296,17 @@ function handleDisconnect(
     resp = ctx.backend.solanaDisconnect();
     ctx.events.emit(BACKEND_EVENT, {
       name: NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
+      data: {
+        blockchain,
+      },
     });
   } else if (blockchain === Blockchain.ETHEREUM) {
     // resp = ctx.backend.ethereumDisconnect();
     ctx.events.emit(BACKEND_EVENT, {
       name: NOTIFICATION_BLOCKCHAIN_DISCONNECTED,
+      data: {
+        blockchain,
+      },
     });
   }
   return [resp];

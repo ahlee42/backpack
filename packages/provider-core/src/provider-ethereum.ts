@@ -321,7 +321,7 @@ export class ProviderEthereumInjection extends EventEmitter {
   _handleNotification = (event: Event) => {
     if (
       event.data.type !== CHANNEL_BLOCKCHAIN_NOTIFICATION ||
-      event.data.detail.blockchain !== Blockchain.ETHEREUM
+      event.data.detail.data.blockchain !== Blockchain.ETHEREUM
     ) {
       return;
     }

@@ -80,7 +80,7 @@ export class ProviderSolanaInjection
   #handleNotification(event: Event) {
     if (
       event.data.type !== CHANNEL_BLOCKCHAIN_NOTIFICATION ||
-      event.data.detail.blockchain !== Blockchain.SOLANA
+      event.data.detail.data.blockchain !== Blockchain.SOLANA
     ) {
       return;
     }
