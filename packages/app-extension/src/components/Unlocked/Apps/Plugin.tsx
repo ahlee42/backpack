@@ -1,10 +1,5 @@
 import type { Plugin } from "@coral-xyz/common";
-import {
-  useDarkMode,
-  usePlugins,
-  useXnftPreference,
-  useXnftPreferences,
-} from "@coral-xyz/recoil";
+import { useDarkMode, usePlugins, useXnftPreference } from "@coral-xyz/recoil";
 import { useCustomTheme } from "@coral-xyz/themes";
 import { Button, Divider } from "@mui/material";
 import { PublicKey } from "@solana/web3.js";
@@ -54,9 +49,8 @@ export function _PluginDisplay({
   closePlugin: () => void;
 }) {
   const theme = useCustomTheme();
-  const xnftPreference = useXnftPreference({
-    xnftId: plugin?.xnftInstallAddress?.toString(),
-  });
+  const xnft = plugin?.xnftInstallAddress?.toString();
+  const xnftPreference = useXnftPreference(xnft);
 
   if (!plugin) {
     return (

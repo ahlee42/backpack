@@ -6,7 +6,7 @@ export const useXnftPreferences = () => {
   return useRecoilValue(atoms.xnftPreferences);
 };
 
-export function useXnftPreference({ xnftId }: { xnftId?: string }) {
+export function useXnftPreference(xnftId?: string) {
   if (!xnftId) {
     return null;
   }

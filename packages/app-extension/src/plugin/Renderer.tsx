@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { XnftPreference } from "@coral-xyz/common";
-import {
-  useAvatarUrl,
-  useDarkMode,
-  useUsername,
-  useXnftPreference,
-} from "@coral-xyz/recoil";
+import { useAvatarUrl, useDarkMode, useUsername } from "@coral-xyz/recoil";
 
 import { Loading } from "../components/common";
 
