@@ -1,12 +1,10 @@
+import type { XnftPreference, XnftPreferenceStore } from "@coral-xyz/common";
+import { UI_RPC_METHOD_GET_XNFT_PREFERENCES } from "@coral-xyz/common";
 import { atom, atomFamily, selector, selectorFamily } from "recoil";
-import {
-  UI_RPC_METHOD_GET_XNFT_PREFERENCES,
-  XnftPreferenceStore,
-  XnftPreference,
-} from "@coral-xyz/common";
+
 import { backgroundClient } from "../client";
 
-export const xnftPreferences = atom<XnftPreferenceStore>({
+export const xnftPreferences = atom<XnftPreferenceStore | null>({
   key: "xnftPreferences",
   default: selector({
     key: "xnftPreferencesDefault",
@@ -16,25 +14,21 @@ export const xnftPreferences = atom<XnftPreferenceStore>({
         method: UI_RPC_METHOD_GET_XNFT_PREFERENCES,
         params: [],
       });
-      return response || {};
+      return response ?? null;
     },
   }),
 });
 
-export const xnftPreference = atomFamily<
-  XnftPreference,
-  {
-    xnftId: string;
-  }
->({
+type xNFTId = string;
+export const xnftPreference = atomFamily<XnftPreference | null, xNFTId>({
   key: "xnftPreference",
   default: selectorFamily({
     key: "xnftPreferenceDefault",
     get:
-      ({ xnftId }: { xnftId: string }) =>
+      (xnftId) =>
       async ({ get }) => {
         const preferences = get(xnftPreferences);
-        return preferences[xnftId] || {};
+        return preferences?.[xnftId] ?? null;
       },
   }),
 });

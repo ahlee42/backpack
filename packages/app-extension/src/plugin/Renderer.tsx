@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Loading } from "../components/common";
+import type { XnftPreference } from "@coral-xyz/common";
 import {
   useAvatarUrl,
   useDarkMode,
   useUsername,
   useXnftPreference,
 } from "@coral-xyz/recoil";
-import { XnftPreference } from "@coral-xyz/common";
+
+import { Loading } from "../components/common";
 
 export function PluginRenderer({
   plugin,
@@ -23,7 +24,7 @@ export function PluginRenderer({
 
   useEffect(() => {
     if (plugin && ref && ref.current) {
-      plugin.mount(xnftPreference);
+      plugin.mount(xnftPreference ?? {});
       plugin.didFinishSetup!.then(() => {
         plugin.pushAppUiMetadata({ isDarkMode, username, avatarUrl });
         plugin.iframeRoot.style.display = "";
@@ -36,7 +37,7 @@ export function PluginRenderer({
       };
     }
     return () => {};
-  }, [plugin, ref]);
+  }, [plugin, xnftPreference, ref]);
 
   useEffect(() => {
     plugin.pushAppUiMetadata({ isDarkMode, username, avatarUrl });

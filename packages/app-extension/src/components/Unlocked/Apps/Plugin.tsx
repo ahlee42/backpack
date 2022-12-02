@@ -1,7 +1,4 @@
-import { Button, Divider } from "@mui/material";
-import { PublicKey } from "@solana/web3.js";
-import { Plugin } from "@coral-xyz/common";
-import { PluginRenderer } from "../../../plugin/Renderer";
+import type { Plugin } from "@coral-xyz/common";
 import {
   useDarkMode,
   usePlugins,
@@ -9,9 +6,14 @@ import {
   useXnftPreferences,
 } from "@coral-xyz/recoil";
 import { useCustomTheme } from "@coral-xyz/themes";
-import { PowerIcon, MoreIcon } from "../../common/Icon";
-import { Simulator } from "./Simulator";
+import { Button, Divider } from "@mui/material";
+import { PublicKey } from "@solana/web3.js";
+
+import { PluginRenderer } from "../../../plugin/Renderer";
+import { MoreIcon, PowerIcon } from "../../common/Icon";
 import { Redirect } from "../../common/Layout/Router";
+
+import { Simulator } from "./Simulator";
 
 export function PluginApp({
   xnftAddress,
@@ -37,31 +39,37 @@ export function PluginDisplay({
   const plugins: Array<Plugin> = usePlugins();
   const p = plugins.find((p) => p.xnftAddress.toString() === xnft);
 
-  // Hack: This is hit due to the framer-motion animation.
-  if (!xnft) {
-    return <></>;
+  if (!xnft || p === undefined) {
+    return null;
   }
 
-  // Hack.
-  if (p === undefined) {
-    console.error("plugin not found");
-    return <Redirect />;
-  }
-
-  return <_PluginDisplay plugin={p!} closePlugin={closePlugin} />;
+  return <_PluginDisplay plugin={p} closePlugin={closePlugin} />;
 }
 
 export function _PluginDisplay({
   plugin,
   closePlugin,
 }: {
-  plugin: Plugin;
+  plugin?: Plugin;
   closePlugin: () => void;
 }) {
   const theme = useCustomTheme();
   const xnftPreference = useXnftPreference({
-    xnftId: plugin.xnftInstallAddress?.toString(),
+    xnftId: plugin?.xnftInstallAddress?.toString(),
   });
+
+  if (!plugin) {
+    return (
+      <div
+        style={{
+          height: "100%",
+          backgroundColor: theme.custom.colors.background,
+        }}
+      >
+        <PluginControl closePlugin={closePlugin} />
+      </div>
+    );
+  }
 
   // TODO: splash loading page.
   return (
@@ -72,11 +80,13 @@ export function _PluginDisplay({
       }}
     >
       <PluginControl closePlugin={closePlugin} />
-      <PluginRenderer
-        key={plugin.iframeRootUrl}
-        plugin={plugin}
-        xnftPreference={xnftPreference}
-      />
+      {plugin && (
+        <PluginRenderer
+          key={plugin.iframeRootUrl}
+          plugin={plugin}
+          xnftPreference={xnftPreference}
+        />
+      )}
     </div>
   );
 }
