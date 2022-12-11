@@ -159,6 +159,7 @@ router.get(
         }
       } catch {
         // User not found or username did not match
+        return res.status(404).json({ msg: "User not found or username did not match" })
       }
     }
 
@@ -171,7 +172,7 @@ router.get(
       try {
         user = await getUserByUsername(username);
       } catch {
-        return res.status(404).json({ msg: "User not found " });
+        return res.status(404).json({ msg: "User not found" });
       }
     }
 
